@@ -107,50 +107,21 @@ bf_alloc(size_t size)
 		return NULL;
 	}
 
-	size_t chunkIndex = 0;     //fangt am die erste chunk an mit index 0
 	size_t needChunks = size_to_chunks(size);
 
+    int closest = 0;
+    for (int chunkIndex = 0; chunkIndex < CHUNK_SIZE; ++chunkIndex) {
 
-	while(chunkIndex < CHUNK_SIZE){
-
-		//wenn Position chunkIndex noch nicht besitzt wurde &&
-        if(bit_is_set(mem_pool, free_list[chunkIndex])==0 && size_to_chunks(chunkIndex)>=needChunks){
-            break;
-		}
-		chunkIndex++;
-	}
-
-
-    //wenn am Ende keine ausreichend große Luecke vorhanden ist, return NULL
-    if(chunkIndex >= CHUNK_SIZE){
-        return NULL;
-	}
-
-
-	size_t tempIndex = chunkIndex;
-
-    while (tempIndex < CHUNK_SIZE){
-        if(bit_is_set(mem_pool[MEM_POOL_SIZE], free_list[chunkIndex])==0)
-        && size_to_chunks(tempIndex) >= needChunks
-        && size_to_chunks(tempIndex) < size_to_chunks(chunkIndex))
-
-            chunkIndex = tempIndex;
-            tempIndex ++;
+        if( closest == 0 || abs(needChunks-closest)>abs(size_to_chunks(chunkIndex)-needChunks) ){
+            closest = size_to_chunks(chunkIndex);
+        }
     }
+    return mem_pool + closest * size;
 
-    //size_t oldLength = free_list[chunkIndex].length;
-    size_t oldLength = size_to_chunks(chunkIndex);
-
-    //free_list[chunkIndex].status = ;
-    size_to_chunks(chunkIndex) = needChunks;
-
-    if(oldLength > needChunks){
-        //free_list[chunkIndex + needChunks].status = 0;
-        size_to_chunks(chunkIndex + needChunks) = oldLength - needChunks;
-        return chunkIndex * CHUNK_SIZE;
-    }
-	
 }
+
+
+
 
 void
 bf_free(void *ptr, size_t size)
