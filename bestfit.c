@@ -109,27 +109,43 @@ bf_alloc(size_t size)
 
 	size_t needChunks = size_to_chunks(size);
 
-
-
     size_t closest = 0; size_t closestIndex = 0;
     size_t i;
-    for (i = 0; i < CHUNK_SIZE; i++) {
+    for (i = 0; i < CHUNK_SIZE; ++i) {
 
         size_t thisChunkSize = 0;
         if(bit_is_set(free_list, i)==0){    //wenn auf Position i frei ist
-            for (int j = i; j < CHUNK_SIZE && (bit_is_set(free_list, j)==0); j++) {      //rechnen dann die Laenge des freien Platz
-                thisChunkSize++;
+            for (int j = i; j < CHUNK_SIZE && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
+                ++thisChunkSize;
+            }
+
+            //get absolutewert
+            size_t a = 0; size_t b = 0;
+            if(thisChunkSize > needChunks){
+                a = thisChunkSize - needChunks;
+            }
+            else{
+                a = needChunks - thisChunkSize;
+            }
+            if(needChunks > closest){
+                b = needChunks - closest;
+            }
+            else{
+                b = closest - needChunks;
             }
 
             //jetzte size(thisChunkSize) - brauchte size kleiner als brauchte size - closest size: jetzte size ist besser
-            if( closest == 0 || abs(needChunks-closest)>abs(thisChunkSize-needChunks) ){
+            if( closest == 0 || a < b ){
                 closest = thisChunkSize;
                 closestIndex = i;
             }
         }
     }
     set_bit(free_list, closestIndex);
-    return mem_pool + closestIndex * size;
+    //printf("%zu\n", closestIndex);
+    //printf("%zu\n", needChunks);
+    dump_free_mem();
+    return mem_pool + closestIndex * CHUNK_SIZE;
 }
 
 
