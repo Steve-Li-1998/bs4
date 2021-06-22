@@ -128,8 +128,8 @@ bf_alloc(size_t size)
             }
         }
     }
+    set_bit(free_list, closestIndex);
     return mem_pool + closestIndex * size;
-
 }
 
 
