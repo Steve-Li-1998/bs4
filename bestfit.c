@@ -109,13 +109,13 @@ bf_alloc(size_t size)
 
 	size_t needChunks = size_to_chunks(size);
 
-    size_t closest = 0; size_t closestIndex = 0;
-    size_t i;
-    for (i = 0; i < CHUNK_SIZE; ++i) {
+    /*size_t closest = 0; size_t closestIndex = 0;
+    size_t i = 0;
+    for (; i < CHUNK_SIZE; ++i) {
 
         size_t thisChunkSize = 0;
         if(bit_is_set(free_list, i)==0){    //wenn auf Position i frei ist
-            for (int j = i; j < CHUNK_SIZE && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
+            for (size_t j = i; (j < CHUNK_SIZE) && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
                 ++thisChunkSize;
             }
 
@@ -125,7 +125,8 @@ bf_alloc(size_t size)
                 a = thisChunkSize - needChunks;
             }
             else{
-                a = needChunks - thisChunkSize;
+                continue;
+                //a = needChunks - thisChunkSize;
             }
             if(needChunks > closest){
                 b = needChunks - closest;
@@ -141,12 +142,64 @@ bf_alloc(size_t size)
             }
         }
     }
+
     set_bit(free_list, closestIndex);
     //printf("%zu\n", closestIndex);
     //printf("%zu\n", needChunks);
     dump_free_mem();
+    return mem_pool + closestIndex * CHUNK_SIZE;*/
+
+
+
+
+    size_t closest = 0; size_t closestIndex = 0;
+
+    size_t i = 0;
+    for (; i < CHUNK_SIZE*8; ++i) {
+
+        size_t thisSize = 0;
+
+        if(bit_is_set(free_list, i)==0) {    //wenn auf Position i frei ist
+            for (size_t j = i; (j < CHUNK_SIZE*8) && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
+                ++thisSize;
+            }
+
+            if(needChunks > thisSize){  //kein genug Platz
+                continue;
+            }
+            else if(needChunks == thisSize){    //Bestcase: fit it
+                closest = thisSize;
+                closestIndex = i;
+                break;
+            }
+            else{   //needChunks < thisSize
+                if(closest == 0 || thisSize - needChunks > abs(thisSize - closest)){
+                    closest = thisSize;
+                    closestIndex = i;
+                }
+            }
+        }
+    }
+
+    for (int j = 0; j < closest; ++j) {
+        set_bit(free_list, closestIndex);
+    }
+
+    dump_free_mem();
     return mem_pool + closestIndex * CHUNK_SIZE;
+
+
+
 }
+
+
+
+
+
+
+
+
+
 
 
 
