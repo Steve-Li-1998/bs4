@@ -111,11 +111,11 @@ bf_alloc(size_t size)
 
     /*size_t closest = 0; size_t closestIndex = 0;
     size_t i = 0;
-    for (; i < CHUNK_SIZE; ++i) {
+    for (; i < CHUNK_SIZE*8; ++i) {
 
         size_t thisChunkSize = 0;
         if(bit_is_set(free_list, i)==0){    //wenn auf Position i frei ist
-            for (size_t j = i; (j < CHUNK_SIZE) && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
+            for (size_t j = i; (j < CHUNK_SIZE*8) && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
                 ++thisChunkSize;
             }
 
@@ -143,7 +143,9 @@ bf_alloc(size_t size)
         }
     }
 
-    set_bit(free_list, closestIndex);
+    for (int j = 0; j < closest-1; ++j) {
+        set_bit(free_list, closestIndex);
+    }
     //printf("%zu\n", closestIndex);
     //printf("%zu\n", needChunks);
     dump_free_mem();
@@ -185,6 +187,9 @@ bf_alloc(size_t size)
         set_bit(free_list, closestIndex);
     }
 
+    printf("%zu\n", closestIndex);
+    printf("%zu\n", closest);
+    printf("%zu\n", needChunks);
     dump_free_mem();
     return mem_pool + closestIndex * CHUNK_SIZE;
 
@@ -201,13 +206,17 @@ bf_alloc(size_t size)
 
 
 
-
-
-
 void
 bf_free(void *ptr, size_t size)
 {
-	/* HIER MUESST IHR EUREN CODE EINFUEGEN! */
+    size_t chunkIndex = ((char*)ptr - mem_pool) / CHUNK_SIZE;
 
-	dump_free_mem();
+
+    for (int i = 0; i < size_to_chunks(size); ++i) {
+        if(bit_is_set(free_list, chunkIndex)==1){
+            clear_bit(free_list, chunkIndex);
+        }
+        ++chunkIndex;
+    }
+    dump_free_mem();
 }
