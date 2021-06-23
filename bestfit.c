@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "bestfit.h"
+#include <errno.h>
 
 
 /* Im Header sind MEM_POOL_SIZE und CHUNK_SIZE definiert*/
@@ -107,7 +108,7 @@ bf_alloc(size_t size)
 		return NULL;
 	}
 
-	size_t needChunks = size_to_chunks(size);
+	size_t neededChunks = size_to_chunks(size);
 
     /*size_t closest = 0; size_t closestIndex = 0;
     size_t i = 0;
@@ -152,8 +153,39 @@ bf_alloc(size_t size)
     return mem_pool + closestIndex * CHUNK_SIZE;*/
 
 
+    unsigned bestFitIndex;
+    size_t bestFitGapSize = MEM_POOL_SIZE / CHUNK_SIZE;
+    size_t currentGapSize = 0;
+    int bestFitGapDetected = 0;
+    for (unsigned i = 0; i < MEM_POOL_SIZE / CHUNK_SIZE; ++i) {
+        if (!bit_is_set(free_list, i)){
+            currentGapSize++;
+        } else {
+            if (currentGapSize >= neededChunks){
+                bestFitGapDetected++;
+                if (currentGapSize < bestFitGapSize){
+                    bestFitGapSize = currentGapSize;
+                    bestFitIndex = i - currentGapSize;
+                }
+            }
+            currentGapSize = 0;
+        }
+    }
+    if(currentGapSize != 0){
+        bestFitIndex = MEM_POOL_SIZE / CHUNK_SIZE - currentGapSize;
+        bestFitGapDetected++;
+    }
+    if (bestFitGapDetected){
+        for (unsigned i = 0; i < neededChunks; ++i) {
+            set_bit(free_list, bestFitIndex + i);
+        }
+    } else{
+        errno = ENOMEM;
+        return NULL;
+    }
 
 
+    /*
     size_t closest = 0; size_t closestIndex = 0;
 
     size_t i = 0;
@@ -186,12 +218,13 @@ bf_alloc(size_t size)
     for (int j = 0; j < closest; ++j) {
         set_bit(free_list, closestIndex);
     }
+    */
 
     printf("%zu\n", closestIndex);
     printf("%zu\n", closest);
     printf("%zu\n", needChunks);
     dump_free_mem();
-    return mem_pool + closestIndex * CHUNK_SIZE;
+    return mem_pool + bestFitIndex * CHUNK_SIZE;
 
 
 
