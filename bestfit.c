@@ -154,7 +154,7 @@ bf_alloc(size_t size)
 
 
     unsigned bestFitIndex;
-    size_t bestFitGapSize = MEM_POOL_SIZE / CHUNK_SIZE;
+    size_t bestFitGapSize = MEM_POOL_SIZE / CHUNK_SIZE + 1;
     size_t currentGapSize = 0;
     int bestFitGapDetected = 0;
     // Falls nicht o, ist mindestens eine passende luecke gefunden
