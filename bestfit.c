@@ -110,49 +110,6 @@ bf_alloc(size_t size)
 
 	size_t neededChunks = size_to_chunks(size);
 
-    /*size_t closest = 0; size_t closestIndex = 0;
-    size_t i = 0;
-    for (; i < CHUNK_SIZE*8; ++i) {
-
-        size_t thisChunkSize = 0;
-        if(bit_is_set(free_list, i)==0){    //wenn auf Position i frei ist
-            for (size_t j = i; (j < CHUNK_SIZE*8) && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
-                ++thisChunkSize;
-            }
-
-            //get absolutewert
-            size_t a = 0; size_t b = 0;
-            if(thisChunkSize > needChunks){
-                a = thisChunkSize - needChunks;
-            }
-            else{
-                continue;
-                //a = needChunks - thisChunkSize;
-            }
-            if(needChunks > closest){
-                b = needChunks - closest;
-            }
-            else{
-                b = closest - needChunks;
-            }
-
-            //jetzte size(thisChunkSize) - brauchte size kleiner als brauchte size - closest size: jetzte size ist besser
-            if( closest == 0 || a < b ){
-                closest = thisChunkSize;
-                closestIndex = i;
-            }
-        }
-    }
-
-    for (int j = 0; j < closest-1; ++j) {
-        set_bit(free_list, closestIndex);
-    }
-    //printf("%zu\n", closestIndex);
-    //printf("%zu\n", needChunks);
-    dump_free_mem();
-    return mem_pool + closestIndex * CHUNK_SIZE;*/
-
-
     unsigned bestFitIndex;
     size_t bestFitGapSize = MEM_POOL_SIZE / CHUNK_SIZE + 1;
     size_t currentGapSize = 0;
@@ -212,16 +169,6 @@ bf_free(void *ptr, size_t size)
     for (unsigned i = 0; i < freeSize; ++i) {
         clear_bit(free_list, target + i);
     }
-    /*
-    size_t chunkIndex = ((char*)ptr - mem_pool) / CHUNK_SIZE;
 
-
-    for (int i = 0; i < size_to_chunks(size); ++i) {
-        if(bit_is_set(free_list, chunkIndex)==1){
-            clear_bit(free_list, chunkIndex);
-        }
-        ++chunkIndex;
-    }
-    */
     dump_free_mem();
 }
