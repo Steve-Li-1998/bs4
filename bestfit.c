@@ -157,6 +157,7 @@ bf_alloc(size_t size)
     size_t bestFitGapSize = MEM_POOL_SIZE / CHUNK_SIZE;
     size_t currentGapSize = 0;
     int bestFitGapDetected = 0;
+    // Falls nicht o, ist mindestens eine passende luecke gefunden
     for (unsigned i = 0; i < MEM_POOL_SIZE / CHUNK_SIZE; ++i) {
         if (!bit_is_set(free_list, i)){
             currentGapSize++;
@@ -171,9 +172,12 @@ bf_alloc(size_t size)
             currentGapSize = 0;
         }
     }
-    if(currentGapSize != 0){
-        bestFitIndex = MEM_POOL_SIZE / CHUNK_SIZE - currentGapSize;
+    if(currentGapSize >= neededChunks){
         bestFitGapDetected++;
+       if (currentGapSize < bestFitGapSize){
+           bestFitIndex = MEM_POOL_SIZE / CHUNK_SIZE - currentGapSize;
+           bestFitGapDetected++;
+       }
     }
     if (bestFitGapDetected){
         for (unsigned i = 0; i < neededChunks; ++i) {
@@ -184,45 +188,6 @@ bf_alloc(size_t size)
         return NULL;
     }
 
-
-    /*
-    size_t closest = 0; size_t closestIndex = 0;
-
-    size_t i = 0;
-    for (; i < CHUNK_SIZE*8; ++i) {
-
-        size_t thisSize = 0;
-
-        if(bit_is_set(free_list, i)==0) {    //wenn auf Position i frei ist
-            for (size_t j = i; (j < CHUNK_SIZE*8) && (bit_is_set(free_list, j)==0); ++j) {      //rechnen dann die Laenge des freien Platz
-                ++thisSize;
-            }
-
-            if(needChunks > thisSize){  //kein genug Platz
-                continue;
-            }
-            else if(needChunks == thisSize){    //Bestcase: fit it
-                closest = thisSize;
-                closestIndex = i;
-                break;
-            }
-            else{   //needChunks < thisSize
-                if(closest == 0 || thisSize - needChunks > abs(thisSize - closest)){
-                    closest = thisSize;
-                    closestIndex = i;
-                }
-            }
-        }
-    }
-
-    for (int j = 0; j < closest; ++j) {
-        set_bit(free_list, closestIndex);
-    }
-    */
-
-    printf("%zu\n", closestIndex);
-    printf("%zu\n", closest);
-    printf("%zu\n", needChunks);
     dump_free_mem();
     return mem_pool + bestFitIndex * CHUNK_SIZE;
 
@@ -242,6 +207,12 @@ bf_alloc(size_t size)
 void
 bf_free(void *ptr, size_t size)
 {
+    unsigned target = ((char*)ptr - mem_pool) / CHUNK_SIZE;
+    size_t freeSize = size_to_chunks(size);
+    for (unsigned i = 0; i < freeSize; ++i) {
+        clear_bit(free_list, target + i);
+    }
+    /*
     size_t chunkIndex = ((char*)ptr - mem_pool) / CHUNK_SIZE;
 
 
@@ -251,5 +222,6 @@ bf_free(void *ptr, size_t size)
         }
         ++chunkIndex;
     }
+    */
     dump_free_mem();
 }
